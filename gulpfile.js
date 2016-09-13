@@ -20,9 +20,11 @@ var localPath = 'build/local';
 var convert = require('convert-source-map');
 var sourceify = require('sourceify');
 var extractor    = require('gulp-extract-sourcemap');
-var uglify       = require('gulp-uglifyjs');
+var uglify       = require('gulp-uglify');
 var filter       = require('gulp-filter');
 var path         = require('path');
+var SourceMapSupport = require('gulp-sourcemaps-support');
+var rename = require('gulp-rename');
 
 gulp.task('clean', function () {
     return gulp.src('./build/local/**')
@@ -51,7 +53,7 @@ gulp.task('html', function () {
 });
 
 var bundler = browserify({
-    extensions: ['.jsx', '.jS'],
+    extensions: ['.jsx', '.js'],
     entries: 'src/js/app.js',
     debug: true
 });
@@ -60,8 +62,8 @@ bundler.transform(
     babelify.configure({
         extensions: ['.jsx'], //only .jsx files
         presets: ['es2015', 'react'],
-        sourceMaps: true, //how to extract base64 maps?
-        sourceMapsAbsolute: true
+        sourceMaps: true//, //how to extract base64 maps?
+       // sourceMapsAbsolute: true
         //compact: false
     })
 );
@@ -121,18 +123,31 @@ gulp.task('js_sm', function () {
         .on('error', function(err) { console.error(err); this.emit('end'); })
         .pipe(source('js/app.js'))
         .pipe(buffer())
-        .pipe(sourcemaps.init({ loadMaps: true, debug: true, identityMap: true, includeContent: false }))
-        .pipe(uglify())
-        .on('error', gutil.log)
-        .pipe(sourcemaps.write('./',
+        //.pipe(SourceMapSupport())
+        .pipe(sourcemaps.init({
+            loadMaps: true,
+            debug: true,
+            identityMap: true
+        }))
+       // .pipe(uglify()) //minify file --- no sourcemap!!!!!
+        //.pipe(rename("js/app.js")) // rename file
+        //.on('error', gutil.log)
+        .pipe(sourcemaps.write('./' ,
             {
-                addComment: true,
-                includeContent: true,
+                includeContent: true, // must be true
+                addComment: true, // must be true
+                debug: true,
                 mapSources: function(sourcePath) {
-                // source paths are prefixed with '../src/'
-                    return '../src/' + sourcePath;
+                    // source paths are prefixed with '../src/'
+                    return './src/' + sourcePath;
                 }
             }
+            //  {sourceRoot: './src/js'}
+            //  {
+                //addComment: true//,
+                //includeContent: true//,
+
+            // }
         ))
         .pipe(gulp.dest(localPath));
     return bundler;
@@ -218,12 +233,21 @@ gulp.task('convert', function() {
 
 });
 
+gulp.task('convertapp', function() {
+    var convert = require('convert-source-map');
+
+    var json = convert
+        .fromComment('//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIlN1Yi5qc3giXSwibmFtZXMiOlsiU3ViIiwiaWQiLCJwcm9wcyIsInByb3BUeXBlcyIsIm51bWJlciIsImlzUmVxdWlyZWQiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7O0FBQUE7Ozs7Ozs7Ozs7OztJQUVxQkEsRzs7Ozs7Ozs7Ozs7aUNBQ1I7QUFBQSxnQkFDRUMsRUFERixHQUNRLEtBQUtDLEtBRGIsQ0FDRUQsRUFERjs7QUFFTCxtQkFDSTtBQUFBO0FBQUE7QUFBTSxxQkFBTjtBQUFBO0FBQWNBO0FBQWQsYUFESjtBQUdIOzs7Ozs7a0JBTmdCRCxHOzs7QUFTckJBLElBQUlHLFNBQUosR0FBZ0I7QUFDWkYsUUFBSSxpQkFBVUcsTUFBVixDQUFpQkM7QUFEVCxDQUFoQiIsImZpbGUiOiJTdWIuanN4Iiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0LCB7Q29tcG9uZW50LCBQcm9wVHlwZXN9IGZyb20gJ3JlYWN0JztcblxuZXhwb3J0IGRlZmF1bHQgY2xhc3MgU3ViIGV4dGVuZHMgQ29tcG9uZW50IHtcbiAgICByZW5kZXIoKSB7XG4gICAgICAgIGNvbnN0IHtpZH0gPSB0aGlzLnByb3BzO1xuICAgICAgICByZXR1cm4gKFxuICAgICAgICAgICAgPGRpdj57J1N1Yid9IHtpZH08L2Rpdj5cbiAgICAgICAgKTtcbiAgICB9XG59XG5cblN1Yi5wcm9wVHlwZXMgPSB7XG4gICAgaWQ6IFByb3BUeXBlcy5udW1iZXIuaXNSZXF1aXJlZFxufTtcbiJdfQ==')
+        .toJSON();
+
+    console.log(json);
+});
+
 gulp.task('build', function (callback) {
     runSequence('clean',
         [
             'public',
-            'html',
-            'js_extract',
+            'html'
         ],
         callback);
 });
