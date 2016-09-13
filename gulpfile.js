@@ -247,7 +247,8 @@ gulp.task('build', function (callback) {
     runSequence('clean',
         [
             'public',
-            'html'
+            'html',
+            'js_sm'
         ],
         callback);
 });
