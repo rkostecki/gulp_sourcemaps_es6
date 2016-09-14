@@ -233,11 +233,15 @@ gulp.task('convertapp', function() {
     var convert = require('convert-source-map');
     console.log(convert.mapFileCommentRegex);
 
-    var re = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)|(?:\/\*[@#][ \t]+sourceMappingURL=([^\*]+?)[ \t]*(?:\*\/){1}[ \t]*$)/gi;
+    var re = /(\/\/[ \t]*[@#][ \t]*sourceMappingURL=data:application\/json;base64,[a-zA-Z0-9]+[=]*)/gi;
+    console.log(re);
+    var cv;
     return gulp.src( './build/local/js/app.js.map')
         .pipe(scan({ term: re, fn: function (match) {
-            //console.log(match, convert.fromComment(match).toJSON());
+            cv  = convert.fromComment(match).toJSON();
             console.log(match);
+            console.log(convert.fromComment(match).toObject());
+            // /console.log(cv);
             return match;
         }}));
     // //return gulp.src('./build/local/js/app.js.map').
@@ -250,14 +254,14 @@ gulp.task('convertapp', function() {
     // console.log(sm);
 });
 
-gulp.task('broccolism', function() {
-    var sourceMap = require('broccoli-source-map')
-    var src = 'js_and_maps' // probably something like: sweetjs('js', {sourceMap: true, readableNames: true});
-    var jsStream = fs.readFileSync(__dirname + '/build/local/js/app.js.map', 'utf8');
-
-    var extracted = new sourceMap.SourceMapExtractor(jsStream);
-    console.log(extracted);
-})
+// gulp.task('broccolism', function() {
+//     var sourceMap = require('broccoli-source-map')
+//     var src = 'js_and_maps' // probably something like: sweetjs('js', {sourceMap: true, readableNames: true});
+//     var jsStream = fs.readFileSync(__dirname + '/build/local/js/app.js.map', 'utf8');
+//
+//     var extracted = new sourceMap.SourceMapExtractor(jsStream);
+//     console.log(extracted);
+// })
 
 gulp.task('build', function (callback) {
     runSequence('clean',
