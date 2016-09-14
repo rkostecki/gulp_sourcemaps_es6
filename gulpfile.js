@@ -4,7 +4,7 @@ var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var sourcemaps = require('gulp-sourcemaps');//
-//var uglify = require('gulp-uglify');
+var uglify = require('gulp-uglify');
 var plumber = require('gulp-plumber');
 var preprocess = require('gulp-preprocess');
 var watch = require('gulp-watch');
@@ -20,7 +20,7 @@ var localPath = 'build/local';
 var convert = require('convert-source-map');
 var sourceify = require('sourceify');
 var extractor    = require('gulp-extract-sourcemap');
-var uglify       = require('gulp-uglify');
+var uglifyjs       = require('gulp-uglifyjs');
 var filter       = require('gulp-filter');
 var path         = require('path');
 var SourceMapSupport = require('gulp-sourcemaps-support');
@@ -93,12 +93,11 @@ gulp.task('js_extract', function() {
             orig: ''
         }
     };
-
     bundler.bundle()
     .pipe(source('js/app.js'))
     .pipe(buffer())
     .pipe( extractor({
-        basedir:                path.join(__dirname, 'dist'),
+        basedir:                path.join(__dirname, '/build/local'),
         removeSourcesContent:   true
     }) )
         .on('postextract', function(sourceMap){
@@ -106,9 +105,9 @@ gulp.task('js_extract', function() {
             exchange.source_map.orig = sourceMap;
         })
         .pipe( filter('**/*.js*') )
-        .pipe( uglify( 'app.min.js', {
+        .pipe( uglifyjs( 'js/app.js', {
             outSourceMap: true,
-            basePath: './dist/',
+            basePath: localPath,
             output: {
                 source_map: exchange.source_map // it's necessary
                 // to correct generate of a final source map
@@ -234,6 +233,7 @@ gulp.task('convert', function() {
 });
 
 gulp.task('convertapp', function() {
+    return gulp.src(localPath + '/build/local/js/app.js.map')
     var convert = require('convert-source-map');
 
     var json = convert
