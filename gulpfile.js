@@ -223,6 +223,7 @@ gulp.task('convert', function() {
 
 gulp.task('convertapp', function() {
     var scan = require('gulp-scan');
+    var replace = require('gulp-replace');
     // var SourceMapConcat = require('inline-sourcemap-concat')
     // var sm = SourceMapConcat.create({
     //     file: '/build/local/js/app.js.map'
@@ -231,19 +232,21 @@ gulp.task('convertapp', function() {
     // var result = sm.generate();
     // var result2 = sm.generate();
     var convert = require('convert-source-map');
-    console.log(convert.mapFileCommentRegex);
+   // console.log(convert.mapFileCommentRegex);
 
-    var re = /(\/\/[ \t]*[@#][ \t]*sourceMappingURL=data:application\/json;base64,[a-zA-Z0-9]+[=]*)/gi;
+    var re = /(\/\/[ \t]*[@#][ \t]*sourceMappingURL=data:application\/json;base64,[a-zA-Z0-9\+=]+)/gi;
     console.log(re);
     var cv;
     return gulp.src( './build/local/js/app.js.map')
+        //.pipe(replace(re, '!![MAP]!!'))
         .pipe(scan({ term: re, fn: function (match) {
             cv  = convert.fromComment(match).toJSON();
             console.log(match);
-            console.log(convert.fromComment(match).toObject());
-            // /console.log(cv);
+            //console.log(convert.fromComment(match).toObject());
+            console.log(cv);
             return match;
-        }}));
+        }}))
+        .pipe(gulp.dest('./build/local/js/app_replaced.js.map'));
     // //return gulp.src('./build/local/js/app.js.map').
     //
     // var jsStream = fs.readFileSync(__dirname + '/build/local/js/app.js', 'utf8');
